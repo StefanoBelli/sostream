@@ -43,7 +43,7 @@ namespace ssynx {
             basic_socketbuf() {
                 get_buffer.reserve(1);
 
-                char_type *get_buffer_data { &*get_buffer.begin() };
+                char_type *get_buffer_data { get_buffer.data() };
                 Base::setg(get_buffer_data, get_buffer_data, get_buffer_data);
             }
 
@@ -65,7 +65,7 @@ namespace ssynx {
                 std::streamsize read_size =
                         impl_type::read_all(static_cast<std::vector<char>&>(get_buffer), socket_res);
 
-                char_type *get_buffer_beginning { &*get_buffer.begin() };
+                char_type *get_buffer_beginning { get_buffer.data() };
                 Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
 
                 return CharTraits::to_int_type(get_buffer[0]);
@@ -76,8 +76,8 @@ namespace ssynx {
             }
 
         private:
-            std::vector<char_type> get_buffer { };
-            socket_resource_type socket_res { -1 };
+            std::vector<char_type> get_buffer	{ };
+            socket_resource_type socket_res		{ };
         };
 
         template <typename ImplProvider,
@@ -90,13 +90,13 @@ namespace ssynx {
             using Base = std::basic_iostream<CharT, CharTraits>;
             using BasicStreambuf = std::basic_streambuf<CharT, CharTraits>;
 
-            basic_socketstream() {
-                Base::rdbuf(static_cast<BasicStreambuf*>(&underlying_buffer));
-            }
+            basic_socketstream() : 
+				Base(static_cast<BasicStreambuf*>(&underlying_buffer)) {}
 
-            basic_socketstream(const char* hostn, std::uint16_t port) {
-                Base::rdbuf(static_cast<BasicStreambuf*>(&underlying_buffer));
-                open(hostn, port);
+            basic_socketstream(const char* hostn, std::uint16_t port) :
+				Base(static_cast<BasicStreambuf*>(&underlying_buffer)) {
+                
+				open(hostn, port);
             }
 
             ~basic_socketstream() {
