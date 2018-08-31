@@ -39,7 +39,7 @@ bool tcp::open(const char *hostname, std::uint16_t port, sock_type *sock) noexce
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_family = AF_UNSPEC;
 
-    if(getaddrinfo(hostname, s_port, &hints, &lookup_res) < 0)
+    if(getaddrinfo(hostname, s_port, &hints, &lookup_res))
         return false;
 
 	bool res =
