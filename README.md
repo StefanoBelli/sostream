@@ -34,21 +34,29 @@ int main() {
 
 Implementation must provide the following functions:
 
- * ```c++ bool open(const char* hostname, std::uint16_t port, socket_resource_type* __out_sock) ```
+ * ```c++ 
+ bool open(const char* hostname, std::uint16_t port, socket_resource_type* __out_sock) 
+ ```
 
     Function shall return true if a connection was correctly made, false otherwise. 
     
     If connection was not made, the value assigned to the memory pointed by __out_sock is ignored anyway.
 
- * ```c++ void close(socket_resource_type sock)```
+ * ```c++ 
+ void close(socket_resource_type sock)
+ ```
 
     Function will close and should not perform error check. Ignored.
 
- * ```c++ std::streamsize write(const char* data, std::streamsize count, socket_resource_type sock)```
+ * ```c++ 
+ std::streamsize write(const char* data, std::streamsize count, socket_resource_type sock)
+ ```
 
     Function shall return the number of actual written bytes.
 
- * ```c++ std::streamsize read_all(std::vector<char>& v, socket_resource_type sock)```
+ * ```c++
+ std::streamsize read_all(std::vector<char>& v, socket_resource_type sock)
+ ```
 
     Function shall return the number of bytes read and if connection was closed, then just 0.
     
@@ -56,7 +64,9 @@ Each of these function should not raise any exception (use ```c++ noexcept``` sp
 
 ### Aliases
 
-Defined in ```c++ namespace ssynx::ipc```
+Defined in ```c++ 
+namespace ssynx::ipc
+```
 
 ```c++
 template<typename ImplProvider, typename CharT, typename CharTraits = std::char_traits<CharT> >
