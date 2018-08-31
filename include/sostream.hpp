@@ -1,6 +1,12 @@
 #ifndef SOSTREAM_HPP
 #define SOSTREAM_HPP
 
+#if defined(__linux__)
+#define SOCKET_RES_TYPE int
+#elif defined(_WIN32)
+#define SOCKET_RES_TYPE void*
+#endif
+
 #include <streambuf>
 #include <vector>
 #include <istream>
@@ -8,9 +14,7 @@
 
 namespace ssynx {
 
-#ifdef __linux__
-    using socket_resource_type = int;
-#endif
+	using socket_resource_type = SOCKET_RES_TYPE;
 
     namespace prot {
         struct tcp {
