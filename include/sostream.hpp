@@ -12,6 +12,12 @@
 #include <istream>
 #include <cstdint>
 
+//windows piece of shit
+#if defined(_WIN32)
+void _Internal_WSA_Init();
+void _Internal_WSA_Cleanup();
+#endif
+
 namespace ssynx {
 
 	using socket_resource_type = SOCKET_RES_TYPE;
@@ -41,11 +47,20 @@ namespace ssynx {
             using Base = std::basic_streambuf<CharT, CharTraits>;
 
             basic_socketbuf() {
-                get_buffer.reserve(1);
-
+#if defined(_WIN32)
+				_Internal_WSA_Init();
+#endif
                 char_type *get_buffer_data { get_buffer.data() };
-                Base::setg(get_buffer_data, get_buffer_data, get_buffer_data);
+                Base::setg(get_buffer_data, get_buffer_data + 1, get_buffer_data + 1);
             }
+
+#if defined(_WIN32)
+			~basic_socketbuf() {
+				_Internal_WSA_Cleanup();
+			}
+#else
+			~basic_socketbuf() = default;
+#endif
 
             bool open(const char* hostn, std::uint16_t port) noexcept {
                 return impl_type::open(hostn, port, &socket_res);
@@ -66,9 +81,9 @@ namespace ssynx {
                         impl_type::read_all(static_cast<std::vector<char>&>(get_buffer), socket_res);
 
                 char_type *get_buffer_beginning { get_buffer.data() };
-                Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
+				Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
 
-                return CharTraits::to_int_type(get_buffer[0]);
+				return CharTraits::to_int_type(get_buffer.size() ? get_buffer[0] : 0);
             }
 
             socket_resource_type system_socket_resource() const noexcept {
@@ -129,7 +144,5 @@ namespace ssynx {
     }
 
 }
-
-
 
 #endif //SOSTREAM_HPP
