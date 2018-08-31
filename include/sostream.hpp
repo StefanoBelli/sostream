@@ -114,10 +114,7 @@ namespace ssynx {
                 char_type *get_buffer_beginning{get_buffer.data()};
                 Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
 
-                if(read_size == 0)
-                    return CharTraits::to_int_type(0);
-
-                return CharTraits::to_int_type(get_buffer[0]);
+                return CharTraits::to_int_type(read_size ? get_buffer[0] : 0);
             }
 
             socket_resource_type system_socket_resource() const noexcept {
