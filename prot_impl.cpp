@@ -20,7 +20,6 @@ using ssize_type = ssize_t;
 #include <WS2tcpip.h>
 using ssize_type = SSIZE_T;
 #define SOCKET_CAST(xsock) (reinterpret_cast<SOCKET>(xsock))
-#define VOIDP_CAST(xsock) (reinterpret_cast<void*>(xsock))
 #endif
 
 using sock_type = ssynx::socket_resource_type;
@@ -47,7 +46,7 @@ bool tcp::open(const char *hostname, std::uint16_t port, sock_type *sock) noexce
 #if defined(__linux__)
 		(*sock = socket(lookup_res->ai_family, lookup_res->ai_socktype, lookup_res->ai_protocol)) >= 0
 #elif defined(_WIN32)
-		(*((SOCKET*)sock) = socket(
+		(*(SOCKET*) sock = socket(
 			lookup_res->ai_family,
 			lookup_res->ai_socktype,
 			lookup_res->ai_protocol)) != INVALID_SOCKET
