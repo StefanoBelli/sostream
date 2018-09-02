@@ -1,21 +1,19 @@
 #ifndef SOSTREAM_HPP
 #define SOSTREAM_HPP
 
-#if defined(__linux__)
-#define SOCKET_RES_TYPE int
-#elif defined(_WIN32)
-#define SOCKET_RES_TYPE void*
-#endif
-
 #include <streambuf>
 #include <array>
 #include <istream>
 #include <cstdint>
 
-//windows piece of shit
 #if defined(_WIN32)
 void _Internal_WSA_Init();
 void _Internal_WSA_Cleanup();
+#define INVALID_SOCKET_RESOURCE nullptr
+#define SOCKET_RES_TYPE void*
+#elif defined(__linux__)
+#define INVALID_SOCKET_RESOURCE -1
+#define SOCKET_RES_TYPE int
 #endif
 
 namespace ssynx {
@@ -97,8 +95,9 @@ namespace ssynx {
                 return impl_type::open(hostn, port, &socket_res);
             }
 
-            void close() const noexcept {
+            void close() noexcept {
                 impl_type::close(socket_res);
+                socket_res = INVALID_SOCKET_RESOURCE;
             }
 
             std::streamsize xsputn(char_type const *data, std::streamsize size) override {
@@ -125,8 +124,8 @@ namespace ssynx {
 
         private:
             std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
-            char_type *get_buffer_beginning{get_buffer.data()};
-            socket_resource_type socket_res{};
+            char_type *get_buffer_beginning{ get_buffer.data() };
+            socket_resource_type socket_res{ INVALID_SOCKET_RESOURCE };
         };
 
         template<typename ImplProvider,
@@ -140,11 +139,13 @@ namespace ssynx {
             using BasicStreambuf = std::basic_streambuf<CharT, CharTraits>;
 
             basic_socketstream() :
-                    Base(static_cast<BasicStreambuf *>(&underlying_buffer)) {}
+                    Base(static_cast<BasicStreambuf *>(&underlying_buffer)) {
+                Base::setstate(std::ios::failbit);
+            }
 
             basic_socketstream(const char *hostn, std::uint16_t port) :
                     Base(static_cast<BasicStreambuf *>(&underlying_buffer)) {
-
+                Base::setstate(std::ios::failbit);
                 open(hostn, port);
             }
 
@@ -153,16 +154,17 @@ namespace ssynx {
             }
 
             bool open(const char *hostn, std::uint16_t port) noexcept {
-                bool rv = false;
+                bool rv = underlying_buffer.open(hostn, port);
 
-                if (!(rv = underlying_buffer.open(hostn, port)))
-                    Base::setstate(std::ios::failbit);
+                if(rv)
+                    Base::clear();
 
                 return rv;
             }
 
             void close() noexcept {
                 underlying_buffer.close();
+                Base::setstate(std::ios::failbit);
             }
 
         private:
