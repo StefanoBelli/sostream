@@ -71,7 +71,11 @@ bool udp::open(const char *hostname, std::uint16_t port, sock_type *sock, void *
 }
 
 void udp::close(sock_type sock, void **data) {
+#if defined(__linux__)
     ::close(sock);
+#elif defined(_WIN32)
+	closesocket(SOCKET_CAST(sock));
+#endif
 
     if(data) {
         delete static_cast<udpimpl_data *>(*data);
@@ -83,7 +87,7 @@ streamsz udp::write(const char *wdata, streamsz datasize, sock_type sock, void *
     udpimpl_data* dconn = static_cast<udpimpl_data*>(data);
 
     streamsz written_bytes = static_cast<streamsz>(
-            sendto(SOCKET_CAST(sock), data, static_cast<std::size_t>(datasize), 0, &dconn->addr, dconn->len)
+            sendto(SOCKET_CAST(sock), wdata, static_cast<std::size_t>(datasize), 0, &dconn->addr, dconn->len)
     );
 
     if(written_bytes < 0)
