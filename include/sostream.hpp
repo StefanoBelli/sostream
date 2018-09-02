@@ -19,7 +19,7 @@ void _Internal_WSA_Cleanup();
 namespace ssynx {
 
     using socket_resource_type = SOCKET_RES_TYPE;
-    constexpr std::size_t SOCKET_READ_CHUNKSIZE = 1024;
+    constexpr std::size_t SOCKET_READ_CHUNKSIZE = 4096;
 
     namespace prot {
         struct tcp {
@@ -38,14 +38,14 @@ namespace ssynx {
         struct udp {
         public:
             static bool open(const char *hostname,
-                             std::uint16_t port, socket_resource_type *sock, void**) noexcept;
+                             std::uint16_t port, socket_resource_type *sock, void**);
 
             static std::streamsize write(const char *data,
                                          std::streamsize datasize, socket_resource_type sock, void*) noexcept;
 
             static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock, void*) noexcept;
 
-            static void close(socket_resource_type sock, void**) noexcept;
+            static void close(socket_resource_type sock, void**);
         };
 
     }
@@ -79,11 +79,11 @@ namespace ssynx {
 
 #endif
 
-            bool open(const char *hostn, std::uint16_t port) noexcept {
+            bool open(const char *hostn, std::uint16_t port) {
                 return impl_type::open(hostn, port, &socket_res, &additional_data);
             }
 
-            void close() noexcept {
+            void close() {
                 impl_type::close(socket_res, &additional_data);
                 socket_res = INVALID_SOCKET_RESOURCE;
             }
@@ -142,7 +142,7 @@ namespace ssynx {
                 close();
             }
 
-            bool open(const char *hostn, std::uint16_t port) noexcept {
+            bool open(const char *hostn, std::uint16_t port) {
                 bool rv = underlying_buffer.open(hostn, port);
 
                 if(rv)
@@ -151,7 +151,7 @@ namespace ssynx {
                 return rv;
             }
 
-            void close() noexcept {
+            void close() {
                 underlying_buffer.close();
                 Base::setstate(std::ios::failbit);
             }

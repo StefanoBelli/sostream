@@ -15,6 +15,13 @@
 #define SOCKET_COND_OK != 0
 #define PSOCKET_CAST(x) (x)
 #define SOCKET_CAST(x) (x)
+#elif defined(_WIN32)
+#include <Winsock2.h>
+#include <Ws2tcpip.h>
+#define SSIZE SSIZE_T
+#define SOCKET_COND_OK != INVALID_SOCKET
+#define SOCKET_CAST(s) (reinterpret_cast<SOCKET>(s))
+#define PSOCKET_CAST(s) (reinterpret_cast<SOCKET*>(s))
 #endif
 
 using namespace ssynx::prot;
@@ -27,7 +34,7 @@ struct udpimpl_data {
     socklen_t len;
 };
 
-bool udp::open(const char *hostname, std::uint16_t port, sock_type *sock, void **data) noexcept {
+bool udp::open(const char *hostname, std::uint16_t port, sock_type *sock, void **data) {
     char s_port[6] { 0 };
     addrinfo hints;
     addrinfo *lookup_res { nullptr };
@@ -42,7 +49,6 @@ bool udp::open(const char *hostname, std::uint16_t port, sock_type *sock, void *
     if(getaddrinfo(hostname, s_port, &hints, &lookup_res))
         return false;
 
-    //check if socket is already present
     bool has_socket;
     if(*sock == INVALID_SOCKET_RESOURCE) {
         has_socket =
@@ -64,11 +70,13 @@ bool udp::open(const char *hostname, std::uint16_t port, sock_type *sock, void *
     return has_socket;
 }
 
-void udp::close(sock_type sock, void **data) noexcept {
+void udp::close(sock_type sock, void **data) {
     ::close(sock);
 
-    delete static_cast<udpimpl_data*>(*data);
-    *data = nullptr;
+    if(data) {
+        delete static_cast<udpimpl_data *>(*data);
+        *data = nullptr;
+    }
 }
 
 streamsz udp::write(const char *wdata, streamsz datasize, sock_type sock, void *data) noexcept {
@@ -84,12 +92,14 @@ streamsz udp::write(const char *wdata, streamsz datasize, sock_type sock, void *
     return written_bytes;
 }
 
-streamsz udp::read(char *buffer, std::size_t readlen, sock_type sock, void *data) noexcept {
-    udpimpl_data* dconn = static_cast<udpimpl_data*>(data);
+streamsz udp::read(char *buffer, std::size_t readlen, sock_type sock, void *) noexcept {
+    sockaddr client;
+    socklen_t client_len = sizeof(sockaddr);
 
+    std::memset(&client, 0, client_len);
     std::memset(buffer, 0, readlen);
-    ssize_type current = recvfrom(SOCKET_CAST(sock), buffer, readlen, 0, &dconn->addr, &dconn->len);
 
+    ssize_type current = recvfrom(SOCKET_CAST(sock), buffer, readlen, 0, &client, &client_len);
     if(current < 0)
         current = 0;
 
