@@ -8,7 +8,7 @@
 #endif
 
 #include <streambuf>
-#include <vector>
+#include <array>
 #include <istream>
 #include <cstdint>
 
@@ -21,6 +21,7 @@ void _Internal_WSA_Cleanup();
 namespace ssynx {
 
     using socket_resource_type = SOCKET_RES_TYPE;
+    constexpr std::size_t SOCKET_READ_CHUNKSIZE = 1024;
 
     namespace prot {
         struct tcp {
@@ -31,7 +32,7 @@ namespace ssynx {
             static std::streamsize write(const char *data,
                                          std::streamsize datasize, socket_resource_type sock) noexcept;
 
-            static std::streamsize read_all(std::vector<char> &buffer, socket_resource_type sock);
+            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
 
             static void close(socket_resource_type sock) noexcept;
         };
@@ -44,7 +45,7 @@ namespace ssynx {
             static std::streamsize write(const char *data,
                                          std::streamsize datasize, socket_resource_type sock) noexcept;
 
-            static std::streamsize read_all(std::vector<char> &buffer, socket_resource_type sock);
+            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
 
             static void close(socket_resource_type sock) noexcept;
         };
@@ -57,7 +58,7 @@ namespace ssynx {
             static std::streamsize write(const char *data,
                                          std::streamsize datasize, socket_resource_type sock) noexcept;
 
-            static std::streamsize read_all(std::vector<char> &buffer, socket_resource_type sock);
+            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
 
             static void close(socket_resource_type sock) noexcept;
         };
@@ -109,7 +110,7 @@ namespace ssynx {
                 std::fill(get_buffer.begin(), get_buffer.end(), 0);
 
                 std::streamsize read_size =
-                        impl_type::read_all(static_cast<std::vector<char> &>(get_buffer), socket_res);
+                        impl_type::read(get_buffer.data(), SOCKET_READ_CHUNKSIZE, socket_res);
 
                 char_type *get_buffer_beginning{get_buffer.data()};
                 Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
@@ -122,7 +123,7 @@ namespace ssynx {
             }
 
         private:
-            std::vector <char_type> get_buffer{};
+            std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
             socket_resource_type socket_res{};
         };
 
