@@ -80,8 +80,7 @@ namespace ssynx {
 #if defined(_WIN32)
                 _Internal_WSA_Init();
 #endif
-                char_type *get_buffer_data{get_buffer.data()};
-                Base::setg(get_buffer_data, get_buffer_data + 1, get_buffer_data + 1);
+                Base::setg(get_buffer_beginning, get_buffer_beginning + 1, get_buffer_beginning + 1);
             }
 
 #if defined(_WIN32)
@@ -110,9 +109,8 @@ namespace ssynx {
                 std::fill(get_buffer.begin(), get_buffer.end(), 0);
 
                 std::streamsize read_size =
-                        impl_type::read(get_buffer.data(), SOCKET_READ_CHUNKSIZE, socket_res);
+                        impl_type::read(get_buffer_beginning, SOCKET_READ_CHUNKSIZE, socket_res);
 
-                char_type *get_buffer_beginning{get_buffer.data()};
                 Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
 
                 return CharTraits::to_int_type(read_size ? get_buffer[0] : 0);
@@ -124,6 +122,7 @@ namespace ssynx {
 
         private:
             std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
+            char_type *get_buffer_beginning{get_buffer.data()};
             socket_resource_type socket_res{};
         };
 
