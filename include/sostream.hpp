@@ -25,41 +25,29 @@ namespace ssynx {
         struct tcp {
         public:
             static bool open(const char *hostname,
-                             std::uint16_t port, socket_resource_type *sock) noexcept;
+                             std::uint16_t port, socket_resource_type *sock, void**) noexcept;
 
             static std::streamsize write(const char *data,
-                                         std::streamsize datasize, socket_resource_type sock) noexcept;
+                                         std::streamsize datasize, socket_resource_type sock, void*) noexcept;
 
-            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
+            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock, void*) noexcept;
 
-            static void close(socket_resource_type sock) noexcept;
+            static void close(socket_resource_type sock, void**) noexcept;
         };
 
         struct udp {
         public:
             static bool open(const char *hostname,
-                             std::uint16_t port, socket_resource_type *sock) noexcept;
+                             std::uint16_t port, socket_resource_type *sock, void**) noexcept;
 
             static std::streamsize write(const char *data,
-                                         std::streamsize datasize, socket_resource_type sock) noexcept;
+                                         std::streamsize datasize, socket_resource_type sock, void*) noexcept;
 
-            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
+            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock, void*) noexcept;
 
-            static void close(socket_resource_type sock) noexcept;
+            static void close(socket_resource_type sock, void**) noexcept;
         };
 
-        struct ssl {
-        public:
-            static bool open(const char *hostname,
-                             std::uint16_t port, socket_resource_type *sock) noexcept;
-
-            static std::streamsize write(const char *data,
-                                         std::streamsize datasize, socket_resource_type sock) noexcept;
-
-            static std::streamsize read(char* buffer, std::size_t readlen, socket_resource_type sock) noexcept;
-
-            static void close(socket_resource_type sock) noexcept;
-        };
     }
 
     namespace ipc {
@@ -83,7 +71,7 @@ namespace ssynx {
 
 #if defined(_WIN32)
             ~basic_socketbuf() {
-            _Internal_WSA_Cleanup();
+                _Internal_WSA_Cleanup();
             }
 #else
 
@@ -92,23 +80,23 @@ namespace ssynx {
 #endif
 
             bool open(const char *hostn, std::uint16_t port) noexcept {
-                return impl_type::open(hostn, port, &socket_res);
+                return impl_type::open(hostn, port, &socket_res, &additional_data);
             }
 
             void close() noexcept {
-                impl_type::close(socket_res);
+                impl_type::close(socket_res, &additional_data);
                 socket_res = INVALID_SOCKET_RESOURCE;
             }
 
             std::streamsize xsputn(char_type const *data, std::streamsize size) override {
-                return impl_type::write(data, size, socket_res);
+                return impl_type::write(data, size, socket_res, additional_data);
             }
 
             int_type underflow() override {
                 std::fill(get_buffer.begin(), get_buffer.end(), 0);
 
                 std::streamsize read_size =
-                        impl_type::read(get_buffer_beginning, SOCKET_READ_CHUNKSIZE, socket_res);
+                        impl_type::read(get_buffer_beginning, SOCKET_READ_CHUNKSIZE, socket_res, additional_data);
 
                 if(read_size == 0)
                     return EOF;
@@ -126,6 +114,7 @@ namespace ssynx {
             std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
             char_type *get_buffer_beginning{ get_buffer.data() };
             socket_resource_type socket_res{ INVALID_SOCKET_RESOURCE };
+            void* additional_data { nullptr };
         };
 
         template<typename ImplProvider,

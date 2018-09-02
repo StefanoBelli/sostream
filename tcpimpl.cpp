@@ -29,7 +29,7 @@ using sock_type = ssynx::socket_resource_type;
 using streamsz = std::streamsize;
 using ssize_type = SSIZE;
 
-bool tcp::open(const char *hostname, std::uint16_t port, ssynx::socket_resource_type *sock) noexcept {
+bool tcp::open(const char *hostname, std::uint16_t port, ssynx::socket_resource_type *sock, void**) noexcept {
     char s_port[6] { 0 };
     addrinfo hints;
     addrinfo *lookup_res { nullptr };
@@ -53,7 +53,7 @@ bool tcp::open(const char *hostname, std::uint16_t port, ssynx::socket_resource_
     return is_connected;
 }
 
-void tcp::close(ssynx::socket_resource_type sock) noexcept {
+void tcp::close(ssynx::socket_resource_type sock, void**) noexcept {
 #ifdef __linux__
     ::close(sock);
 #elif defined(_WIN32)
@@ -61,17 +61,22 @@ void tcp::close(ssynx::socket_resource_type sock) noexcept {
 #endif
 }
 
-streamsz tcp::write(const char *data, streamsz datasize, ssynx::socket_resource_type sock) noexcept {
-    return static_cast<streamsz>(
+streamsz tcp::write(const char *data, streamsz datasize, ssynx::socket_resource_type sock, void*) noexcept {
+    streamsz written_bytes = static_cast<streamsz>(
             send(SOCKET_CAST(sock), data, static_cast<std::size_t>(datasize), 0)
             );
+
+    if(written_bytes < 0)
+        written_bytes = 0;
+
+    return written_bytes;
 }
 
-streamsz tcp::read(char* buffer, std::size_t readlen, ssynx::socket_resource_type sock) noexcept {
+streamsz tcp::read(char* buffer, std::size_t readlen, ssynx::socket_resource_type sock, void*) noexcept {
     std::memset(buffer, 0, readlen);
     ssize_type current = recv(SOCKET_CAST(sock), buffer, readlen, 0);
 
-    if(current == -1)
+    if(current < 0)
         current = 0;
 
     return static_cast<streamsz>(current);

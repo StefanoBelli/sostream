@@ -6,7 +6,7 @@ include_directories(include)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(PROJ_SOURCES tcpimpl.cpp)
+set(PROJ_SOURCES tcpimpl.cpp udpimpl.cpp)
 
 if(WIN32)
 	set(PROJ_SOURCES ${PROJ_SOURCES} wsiimpl.cpp)
