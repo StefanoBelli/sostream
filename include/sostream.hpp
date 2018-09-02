@@ -111,9 +111,12 @@ namespace ssynx {
                 std::streamsize read_size =
                         impl_type::read(get_buffer_beginning, SOCKET_READ_CHUNKSIZE, socket_res);
 
+                if(read_size == 0)
+                    return EOF;
+
                 Base::setg(get_buffer_beginning, get_buffer_beginning, get_buffer_beginning + read_size + 1);
 
-                return CharTraits::to_int_type(read_size ? get_buffer[0] : 0);
+                return CharTraits::to_int_type(get_buffer[0]);
             }
 
             socket_resource_type system_socket_resource() const noexcept {
