@@ -110,6 +110,22 @@ namespace ssynx {
                 return socket_res;
             }
 
+            std::streampos seekoff(std::streamoff off, std::ios_base::seekdir dir,
+                    std::ios_base::openmode which = std::ios_base::in) override {
+
+                if(which == std::ios_base::out)
+                    return -1;
+
+                if (dir == std::ios_base::cur)
+                    Base::gbump(off);
+                else if (dir == std::ios_base::end)
+                    Base::setg(Base::eback(), Base::egptr() + off, Base::egptr());
+                else if (dir == std::ios_base::beg)
+                    Base::setg(Base::eback(), Base::eback() + off, Base::egptr());
+
+                return Base::gptr() - Base::eback();
+            }
+
         private:
             std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
             char_type *get_buffer_beginning{ get_buffer.data() };
