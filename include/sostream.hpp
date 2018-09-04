@@ -79,11 +79,11 @@ namespace ssynx {
 
 #endif
 
-            bool open(const char *hostn, std::uint16_t port) {
+            inline bool open(const char *hostn, std::uint16_t port) {
                 return impl_type::open(hostn, port, &socket_res, &additional_data);
             }
 
-            void close() {
+            inline void close() {
                 impl_type::close(socket_res, &additional_data);
                 socket_res = INVALID_SOCKET_RESOURCE;
             }
@@ -106,10 +106,12 @@ namespace ssynx {
                 return CharTraits::to_int_type(get_buffer[0]);
             }
 
-            socket_resource_type system_socket_resource() const noexcept {
+            inline socket_resource_type system_socket_resource() const noexcept {
                 return socket_res;
             }
 
+            //having off different than zero will result in no effect
+            //if dir is std::ios_base::end
             std::streampos seekoff(std::streamoff off, std::ios_base::seekdir dir,
                     std::ios_base::openmode which = std::ios_base::in) override {
 
@@ -119,17 +121,17 @@ namespace ssynx {
                 if (dir == std::ios_base::cur)
                     Base::gbump(off);
                 else if (dir == std::ios_base::end)
-                    Base::setg(Base::eback(), Base::egptr() + off, Base::egptr());
+                    Base::setg(Base::eback(), Base::egptr(), Base::egptr());
                 else if (dir == std::ios_base::beg)
                     Base::setg(Base::eback(), Base::eback() + off, Base::egptr());
 
                 return Base::gptr() - Base::eback();
             }
-
+            
         private:
-            std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer{};
-            char_type *get_buffer_beginning{ get_buffer.data() };
-            socket_resource_type socket_res{ INVALID_SOCKET_RESOURCE };
+            std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer {};
+            char_type *get_buffer_beginning { get_buffer.data() };
+            socket_resource_type socket_res { INVALID_SOCKET_RESOURCE };
             void* additional_data { nullptr };
         };
 
