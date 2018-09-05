@@ -127,7 +127,7 @@ namespace ssynx {
 
                 return Base::gptr() - Base::eback();
             }
-            
+
         private:
             std::array <char_type, SOCKET_READ_CHUNKSIZE> get_buffer {};
             char_type *get_buffer_beginning { get_buffer.data() };
@@ -151,8 +151,7 @@ namespace ssynx {
             }
 
             basic_socketstream(const char *hostn, std::uint16_t port) :
-                    Base(static_cast<BasicStreambuf *>(&underlying_buffer)) {
-                Base::setstate(std::ios::failbit);
+                    basic_socketstream() {
                 open(hostn, port);
             }
 
