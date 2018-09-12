@@ -90,6 +90,8 @@ We can't do more, using iostreams
 
 A simple socketstream_connectionless would look like a socketstream, except for a private member and the fact that the static method read() of the implementor requires to have a parameter lvalue-reference to a structure which is the private member of the class. Then it will be used by the public method last_datagram_address to retrieve the datagram source by the user.
 
+#### include/sostream.hpp
+
 ~~~
 //...
 struct datagram_address_info {
