@@ -82,7 +82,7 @@ So you will agree with me that this is very bad looking and above all, not effic
 
 **WITH THE CONNECTIONLESS-ORIENTED INTERFACE**
 
-*(function member is part of socketstream_connectionless itself, not the static member function of implementor)*
+*(function member last_datagram_address() is part of socketstream_connectionless itself, not the static member function of implementor)*
 
 If we were using a connectionless interface, the problem of synchronization wouldn't exist but we would still use a function to retrieve the last address.
 
