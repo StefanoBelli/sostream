@@ -77,7 +77,7 @@ void udp::close(sock_type sock, void **data) {
 	closesocket(SOCKET_CAST(sock));
 #endif
 
-    if(data) {
+    if(*data) {
         delete static_cast<udpimpl_data *>(*data);
         *data = nullptr;
     }
