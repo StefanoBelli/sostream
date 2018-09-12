@@ -37,6 +37,8 @@ while(len--) {
 
 ### The main problem with UDP
 
+**WITH THE CONNECTION-ORIENTED INTERFACE**
+
 Even if we were doing something like
 
 ~~~
@@ -45,9 +47,42 @@ prot::udp::last_datagram_address();
 
 *(this static member function is not provided here)*
 
+*(this static member function has to be provided from the implementor, not socketstream)*
+
 we have to deal with synchronization if we're using multiple threads, because there is no way to do this, if not by using a global shared resource inside the implementation's translation unit.
 
-**WITH THE CONNECTION-ORIENTED INTERFACE**
+#### udpimpl.cpp
+
+~~~
+//...
+
+//WARNING!!
+//WE MUST SYNCHRONIZE ACCESS TO THIS RESOURCE
+//FROM MULTIPLE THREADS TO AVOID RACE CONDITIONS!!!
+static datagram_address_info g_address_info;
+
+//...
+
+std::streamsize read(/*...*/) {
+    //...
+    //multiple threads may write at the same time
+    recvfrom(/*...*/, /*...sockaddr*/g_address_info.address, /*...socklen_t*/g_address_info.len);
+    //...
+}
+
+//...
+
+datagram_address_info last_datagram_addrees() {
+    // we want to avoid dirty reads...
+    return g_address_info;
+}
+~~~
+
+So you will agree with me that this is very bad looking and above all, not efficient if using multiple threads.
+
+**WITH THE CONNECTIONLESS-ORIENTED INTERFACE**
+
+*(function member is part of socketstream_connectionless itself, not the static member function of implementor)*
 
 If we were using a connectionless interface, the problem of synchronization wouldn't exist but we would still use a function to retrieve the last address.
 
